@@ -6,10 +6,11 @@
 import discord
 from discord.ext import commands
 import asyncio
-from random import shuffle, randrange
+from random import shuffle, randrange, random, choice
 import pickle
 import copy
-from token.py import token
+from bottoken import tkn
+from pornlist import pornlst
 
 bot = commands.Bot(command_prefix='!',
                    description='what kind of fucking hack made this?')
@@ -21,14 +22,16 @@ started = False
 backuplst = [] 
 shfllst = []
 # Boy you can probably do this list better somehow who cares tho
-authlst = ['Genko#7333', 'becca#9184', 'Monsue#2624', 'Wyvern#6209',
+authlst = ['Genko#7333', 'becca#9184', 'Wyvern#6209', 'Monsue#2624',
 'MKJ#0997', 'Sparks#5180', 'Areii (Julie)#8549', 'Sofroni#7893', 'Carfal#0859',
 'Videobunny#7415', 'HealBunny#6430', 'jack0flames#5040', 'Vojjin#9572',
 '@Bunny*･ﾟ✧#6395', 'SledgeDensemeat#1640', 'Jac#9484', 'Shinya#1756',
 'Dermius#1210', 'Rihn#4199', 'shadowsoze#2615', '¯\_(ツ)_/¯ 유혹#4415',
 'Ghost of Slashy Future#1635', 'Aeriko#4284', 'Art#2893', 'CeoJohn#5114',
 'Lemons#7768', 'MercyBae#0812', 'Nira#7394', 'Tiara#0161',
-'Gay this Gay Earth#6889', 'Tanza#6925', 'Blistering#4912']
+'Gay this Gay Earth#6889', 'Tanza#6925', 'Blistering#4912',
+'Lady Raee#7912', 'Domilana#8204', 'Fosbery#2197', 'ThirstQuencher;D#4040', 
+'Corrina#0187', 'Austin#8455', 'Aiko // Sammi#7332']
 removedlst = [] # People who leave during a game will be placed behind shuffle
 
 @bot.event
@@ -39,9 +42,11 @@ async def backup():
     global backuplst
     global shfllst
 
-    print(qlst)
-    backuplst.append(qlst)
-    print(backuplst)
+    if (len(backuplst) > 100):
+        backuplst.pop(0)
+
+    tmplst = copy.copy(qlst)
+    backuplst.append(copy.copy(tmplst))
     shfllst.append(shfl)
 
 async def rest():
@@ -54,7 +59,8 @@ async def rest():
         await bot.say("No more backups available.")
         return
 
-    qlst = copy.deepcopy(backuplst[-1])
+    tmplst = copy.copy(backuplst[-1])
+    qlst = copy.copy(tmplst)
     backuplst.pop()
 
     shfl = shfllst[-1]
@@ -71,10 +77,10 @@ async def get_queue(intro, ment):
             nick = i.nick
             if (i.nick == None):
                 output = output + '{0}: '.format(pos) + \
-                str(i)[:-5] + ":heart:\n"
+                str(i)[:-5] + " :game_die:\n"
             else:
                 output = output + '{0}: '.format(pos) + \
-                str(i.nick) + ":heart:\n"
+                str(i.nick) + " :game_die:\n"
         else:
             if (i.nick == None):
                 output = output + '{0}: '.format(pos) + str(i)[:-5] + "\n"
@@ -86,34 +92,43 @@ async def get_queue(intro, ment):
     if (ment == True):
         output = output + "{0} is asking {1}\n".format(qlst[-1].mention,
                                                        qlst[0].mention)
-    output = output + ":heart: is shuffle"
+    output = output + ":game_die: is shuffle"
     return output
 
 async def move_queue():
     global qlst
     global shfl
 
-    if (qlst[0] == shfl):
-        qlst.pop(0)
-        tmp = qlst[-1]
-        qlst.pop()
-        for i in range(1, 20):
-            shuffle(qlst)
-        qlst.append(shfl)
-        if (len(qlst) == 1):
-            qlst.insert(0, tmp)
-            await backup()
-            return
-        qlst.insert(randrange(1, len(qlst)), tmp)
-    else:
+    if (len(qlst) == 1):
+        await bot.say("This should not happen.")
+        return
+    elif (len(qlst) == 2):
         tmp = qlst[0]
         qlst.pop(0)
         qlst.append(tmp) 
+        return
+    else:
+        if (qlst[0] == shfl):
+            if (len(qlst) == 3):
+                qlst[0], qlst[1] = qlst[1], qlst[0]
+                shfl = qlst[-1]
+            else:
+                tmp1 = qlst[0]
+                tmp2 = qlst[-1]
+                qlst.pop(0)
+                qlst.pop()
+                for i in range(1, 20):
+                    shuffle(qlst)
+                qlst.insert(randrange(1, len(qlst)), tmp1)
+                qlst.insert(randrange(1, len(qlst)), tmp2)
+                shfl = qlst[-1]
+        else:
+            tmp = qlst[0]
+            qlst.pop(0)
+            qlst.append(tmp) 
 
-    await backup()
 
 async def is_authed(usr, queue):
-
     if (queue == True):
         if (usr not in qlst \
             and str(usr) not in authlst):
@@ -125,6 +140,66 @@ async def is_authed(usr, queue):
             return False
         else:
             return True
+
+async def remove_user(membr):
+    global qlst
+    global removedlst
+    global shfl
+    global started
+    reping = False
+
+    if membr in qlst:
+        if (len(qlst) == 1):
+            await bot.say("Queue is getting too small. Stopping game.")
+            qlst = []
+            removedlst = []
+            backuplst = []
+            shfllst = []
+            shfl = None
+            started = False
+        elif (len(qlst) == 2):
+            await backup()
+            qlst.remove(membr)
+            shfl = qlst[-1]
+            started = False
+            removedlst = []
+            await bot.say("Only one user remaining. Stopping game and waiting"
+                      " for more.")
+            return
+        else:
+            if (str(membr) == str(qlst[-1])):
+                await backup()
+                reping = True
+                if (str(membr) == str(shfl)):
+                    shfl = qlst[-2]
+                qlst.remove(membr)
+            else:
+                if (started == False):
+                    await backup()
+                    if (str(shfl) == str(membr)):
+                        shfl = qlst[int(qlst.index(membr)) - 1]
+                    qlst.remove(membr)
+                else:
+                    if (str(membr) == str(qlst[0]) or
+                        str(membr) == str(qlst[-1])):
+                        reping = True
+                    await backup()
+                    if (str(shfl) == str(membr)):
+                        shfl = qlst[int(qlst.index(membr)) - 1]
+                    qlst.remove(membr)
+
+
+        if (started == True):
+            removedlst.append(membr)
+    else:
+        await bot.say("User not found in list.")
+        return
+
+    if (reping == False or started == False):
+        await bot.say("User removed.")
+    else:
+        await bot.say(await get_queue("Currently asked/asking user removed."
+                      " New queue:\n", True))
 
 @bot.command(pass_context=True)
 async def q(ctx):
@@ -150,7 +225,7 @@ async def q(ctx):
         await bot.say('You have been added. Have fun.')
     else:
         # Naughty list? If people leave they will be put after the shuffle
-        if (ctx.message.author in removedlst):
+        if (ctx.message.author in removedlst and str(qlst[-1]) != str(shfl)):
             await bot.say("You already were in the list. You will be placed\n"
                           "After the shuffle.")
             qlst.insert(qlst.index(shfl) + 1, ctx.message.author)
@@ -188,6 +263,7 @@ async def n(ctx):
         return
 
     if (started == True):
+        await backup()        
         await move_queue()
     else:
         started = True
@@ -207,71 +283,42 @@ async def s(ctx):
         await bot.say("You need to be in the queue or authorized to do this.")
         return
 
-    if (started == True):
-        await move_queue()
-    else:
+    if (started == False):
         await bot.say("No game running!")
         return
 
-    await bot.say(await get_queue("Player got skipped. The current queue is:"
-                  "\n", True))
+    await remove_user(qlst[0])
 
 @bot.command(pass_context=True)
-async def r(ctx):
-    """Removes yourself or mentioned user.
+async def r(ctx, todelete=None):
+    """Removes yourself or other user.
 
     Removes yourself or others (if you are authorized)
     from the current queue.
 
     :Usage:
     !r
-    !r @User#0001
+    !r 4
     """
 
-    global qlst
-    global removedlst
-    global shfl
-    global started
-    reping = False
-
     # Only authed people can remove others
-    if (len(ctx.message.mentions) < 1):
+    if (todelete == None):
         membr = ctx.message.author
     else:
-        if not await is_authed(ctx.message.author, False):
-            await bot.say("You need to be authorized to do this.")
+        try:
+            if not await is_authed(ctx.message.author, False):
+                await bot.say("You need to be authorized to do this.")
+                return
+            else:
+                if(len(qlst) < int(todelete)):
+                    await bot.say("Please enter valid number.")
+                else:
+                    membr = qlst[int(todelete) - 1]
+        except TypeError:
+            await bot.say("Please only use numbers.")
             return
-        else:
-            membr = ctx.message.mentions[0]
 
-    # this could have been done better
-    if (len(qlst) < 2):
-        await bot.say("Queue is getting too small. Stopping game.")
-        qlst = []
-        removedlst = []
-        shfl = None 
-        started = False
-        return
-
-    if membr in qlst:
-        if (qlst[0] == membr or qlst[-1] == membr):
-            reping = True
-        qlst.remove(membr)
-        if (started == True):
-            removedlst.append(membr)
-    else:
-        await bot.say("User not found in list.")
-        return
-
-    if (str(shfl) == str(membr)):
-        shfl = qlst[-1]
-
-    await backup()
-    if (reping == False):
-        await bot.say("User removed.")
-    else:
-        await bot.say(await get_queue("Currently asked user removed. New"
-                      " queue:\n", True))
+    await remove_user(membr)
 
 @bot.command()
 async def d():
@@ -298,7 +345,7 @@ async def d():
 # I started changing the naming convetion here because the alphabet only
 # has so many letters and these functions are only for important twats
 @bot.command(pass_context=True)
-async def purge(ctx):
+async def purgequeue(ctx):
     """Purges the queue and stops the game.
 
     Removes every user from the queue.
@@ -342,13 +389,13 @@ async def shufflequeue(ctx):
         await bot.say("You need to be authorized to do this.")
         return
 
+    await backup()
     for i in range(1,20):
         shuffle(qlst)
 
     shfl=qlst[-1]
     started = False
 
-    await backup()
     await bot.say(await get_queue("Queue has been shuffled. Start game again with"
                   " !n. New queue:\n", False))
 
@@ -368,7 +415,7 @@ async def restore(ctx):
     await rest()
 
 @bot.command(pass_context=True)
-async def setshuffle(ctx):
+async def setshuffle(ctx, toshuffle : int):
     """Set a new user as shuffle.
 
     The first user that is mentioned
@@ -376,7 +423,7 @@ async def setshuffle(ctx):
     to be authorized to do this.
 
     :Usage:
-    !setshuffle @User#0001
+    !setshuffle 2
     """
 
     global shfl
@@ -385,9 +432,12 @@ async def setshuffle(ctx):
         await bot.say("You need to be authorized to do this.")
         return
 
-    shfl = ctx.message.mentions[0]
-    await backup()
-    await bot.say(await get_queue('Shuffle changed. Current queue:\n', True))
+    try:
+        shfl = qlst[int(toshuffle) - 1]
+        await backup()
+        await bot.say(await get_queue('Shuffle changed. Current queue:\n', True))
+    except TypeError:
+        await bot.say("Please enter a number.")
 
 
 @bot.command(pass_context=True)
@@ -433,11 +483,78 @@ async def moveuser(ctx, first : int, second : int):
     await bot.say(await get_queue('Positions changed. Current queue:\n', True))
 
 # dont touch me REEEEEEEEEEEEEEEEEEEE
-@bot.command()
-async def supermad():
-    """:MadBlini:"""
-    await bot.say('http://i.imgur.com/VCDHNnn.png')
+@bot.command(pass_context=True, hidden=True)
+async def supermad(ctx):
+    em = discord.Embed()
+    em.set_image(url='http://i.imgur.com/VCDHNnn.png')
+    await bot.send_message(ctx.message.channel, embed=em)
+
+@bot.command(hidden=True)
+async def ripandtear():
+    await bot.say('https://www.youtube.com/watch?v=zZMg9ryeWOw')
+
+@bot.command(pass_context=True, hidden=True)
+async def imgay(ctx):
+    em = discord.Embed()
+    em.set_image(url='https://cdn.discordapp.com/attachments/254665648012001280/2'
+                  '64083658275684353/ugh.png')
+    await bot.send_message(ctx.message.channel, embed=em)
+
+@bot.command(hidden=True)
+async def soldierpotg():
+    await bot.say('https://www.youtube.com/v/9aqopEQr7wI?start=0&end=38&versio'
+                  'n=3')
+
+@bot.command(pass_context=True, hidden=True)
+async def porn(ctx):
+    em = discord.Embed()
+    em.set_image(url=str(choice(pornlst)))
+    await bot.send_message(ctx.message.channel, embed=em)
+
+@bot.command(hidden=True)
+async def whatthefuck():
+    await bot.say('https://youtu.be/F9UKNwlhhpo?t=111')
+
+@bot.command(pass_context=True, hidden=True)
+async def rip(ctx):
+    em = discord.Embed()
+    em.set_image(url='http://i.imgur.com/4I9ycgj.png')
+    await bot.send_message(ctx.message.channel, embed=em)
+
+@bot.command(hidden=True)
+async def sofro():
+    await bot.say("fucking sofro fucking SLUT")
+    
+@bot.command(hidden=True)
+async def cowbell():
+    await bot.say("https://www.youtube.com/watch?v=TklM2-lSby4")
+
+@bot.command(hidden=True)
+async def mistake():
+    await bot.say("https://youtu.be/O0_wpzt8CY4")
+
+@bot.command(pass_context=True, hidden=True)
+async def flat(ctx):
+    em = discord.Embed()
+    em.set_image(url='http://i.imgur.com/HXtXDiL.jpg')
+    await bot.send_message(ctx.message.channel, embed=em)
+
+@bot.command(hidden=True)
+async def riddick():
+    await bot.say('EVERY MORNING I WAKE UP AND OPEN PALM SLAM A VHS INTO THE '
+                  'SLOT. ITS CHRONICLES OF RIDDICK AND RIGHT THEN AND THERE I '
+                  'START DOING THE MOVES ALONGSIDE WITH THE MAIN CHARACTER, '
+                  'RIDDICK. I DO EVERY MOVE AND I DO EVERY MOVE HARD. MAKIN '
+                  'WHOOSHING SOUNDS WHEN I SLAM DOWN SOME NECRO BASTARDS OR '
+                  'EVEN WHEN I MESS UP TECHNIQUE. NOT MANY CAN SAY THEY '
+                  'ESCAPED THE GALAXYS MOST DANGEROUS PRISON. I CAN. I SAY IT '
+                  'AND I SAY IT OUTLOUD EVERYDAY TO PEOPLE IN MY COLLEGE CLASS '
+                  'AND ALL THEY DO IS PROVE PEOPLE IN COLLEGE CLASS CAN STILL '
+                  'BE IMMATURE JEKRS. AND IVE LEARNED ALL THE LINES AND '
+                  'IVE LEARNED HOW TO MAKE MYSELF AND MY APARTMENT LESS '
+                  'LONELY BY SHOUTING EM ALL. 2 HOURS INCLUDING WIND DOWN '
+                  'EVERY MORNIng')
 
 # bot crash bot get up again. bot strong you weak
 while True:
-    bot.run(token)
+    bot.run(tkn)
