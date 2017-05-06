@@ -22,16 +22,12 @@ started = False
 backuplst = [] 
 shfllst = []
 # Boy you can probably do this list better somehow who cares tho
-authlst = ['Genko#7333', 'becca#9184', 'Wyvern#6209', 'Monsue#2624',
-'MKJ#0997', 'Sparks#5180', 'Areii (Julie)#8549', 'Sofroni#7893', 'Carfal#0859',
-'Videobunny#7415', 'HealBunny#6430', 'jack0flames#5040', 'Vojjin#9572',
-'@Bunny*･ﾟ✧#6395', 'SledgeDensemeat#1640', 'Jac#9484', 'Shinya#1756',
-'Dermius#1210', 'Rihn#4199', 'shadowsoze#2615', '¯\_(ツ)_/¯ 유혹#4415',
-'Ghost of Slashy Future#1635', 'Aeriko#4284', 'Art#2893', 'CeoJohn#5114',
-'Lemons#7768', 'MercyBae#0812', 'Nira#7394', 'Tiara#0161',
-'Gay this Gay Earth#6889', 'Tanza#6925', 'Blistering#4912',
-'Lady Raee#7912', 'Domilana#8204', 'Fosbery#2197', 'ThirstQuencher;D#4040', 
-'Corrina#0187', 'Austin#8455', 'Aiko // Sammi#7332']
+authlst = ['105784527632220160', '187921806085062657', '195365659985575936',
+'110986858812432384', '193859387394097152', '146327419698020352',
+'140982805856387072', '139152162071511040', '147189753744195584',
+'203087815318306816', '215207500687867908', '197791201791836160',
+'151658345705635840', '133644191677808640', '236941748805435397',
+'146791841252114432', '134784827361591296']
 removedlst = [] # People who leave during a game will be placed behind shuffle
 
 @bot.event
@@ -131,12 +127,12 @@ async def move_queue():
 async def is_authed(usr, queue):
     if (queue == True):
         if (usr not in qlst \
-            and str(usr) not in authlst):
+            and str(usr.id) not in authlst):
             return False
         else:
             return True
     else:
-        if (str(usr) not in authlst):
+        if (str(usr.id) not in authlst):
             return False
         else:
             return True
