@@ -27,7 +27,9 @@ authlst = ['105784527632220160', '187921806085062657', '195365659985575936',
 '140982805856387072', '139152162071511040', '147189753744195584',
 '203087815318306816', '215207500687867908', '197791201791836160',
 '151658345705635840', '133644191677808640', '236941748805435397',
-'146791841252114432', '134784827361591296']
+'146791841252114432', '134784827361591296', '162571470256472066',
+'83990060889804800', '63322560095322112', '98323644962328576',
+'105457012850044928']
 removedlst = [] # People who leave during a game will be placed behind shuffle
 
 @bot.event
@@ -550,6 +552,10 @@ async def riddick():
                   'IVE LEARNED HOW TO MAKE MYSELF AND MY APARTMENT LESS '
                   'LONELY BY SHOUTING EM ALL. 2 HOURS INCLUDING WIND DOWN '
                   'EVERY MORNIng')
+
+@bot.command(hidden=True)
+async def tier():
+    await bot.say('The current tier of the queue is: **Garbage tier**')
 
 # bot crash bot get up again. bot strong you weak
 while True:
