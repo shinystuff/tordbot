@@ -22,14 +22,14 @@ started = False
 backuplst = [] 
 shfllst = []
 # Boy you can probably do this list better somehow who cares tho
-authlst = ['105784527632220160', '187921806085062657', '195365659985575936',
+authlst = ['187921806085062657', '131384366881439744',
 '110986858812432384', '193859387394097152', '146327419698020352',
-'140982805856387072', '139152162071511040', '147189753744195584',
-'203087815318306816', '215207500687867908', '197791201791836160',
-'151658345705635840', '133644191677808640', '236941748805435397',
-'146791841252114432', '134784827361591296', '162571470256472066',
+'140982805856387072', '139152162071511040',
+'203087815318306816',
+'98881691925360640', '195365659985575936', '338163511471374339',
+'146791841252114432', '120822373195710464', '162571470256472066',
 '83990060889804800', '63322560095322112', '98323644962328576',
-'105457012850044928']
+'105457012850044928', '202818898989547521']
 removedlst = [] # People who leave during a game will be placed behind shuffle
 
 @bot.event
@@ -165,25 +165,32 @@ async def remove_user(membr):
                       " for more.")
             return
         else:
-            if (str(membr) == str(qlst[-1])):
-                await backup()
-                reping = True
-                if (str(membr) == str(shfl)):
-                    shfl = qlst[-2]
-                qlst.remove(membr)
+            if (str(membr) == str(shfl)): 
+                if (str(membr) == str(qlst[-1])):
+                    await backup()
+                    reping = True
+                    if (str(membr) == str(shfl)):
+                        shfl = qlst[-2]
+                    qlst.remove(membr)
+                elif (str(membr) == str(qlst[0])):
+                    await backup()
+                    reping = True
+                    if (str(membr) == str(shfl)):
+                        shfl = qlst[1]
+                        qlst.remove(membr)
+                else:
+                    await backup()
+                    shfl = qlst[int(qlst.index(membr)) -1]
+                    qlst.remove(membr)
             else:
                 if (started == False):
                     await backup()
-                    if (str(shfl) == str(membr)):
-                        shfl = qlst[int(qlst.index(membr)) - 1]
                     qlst.remove(membr)
                 else:
                     if (str(membr) == str(qlst[0]) or
                         str(membr) == str(qlst[-1])):
                         reping = True
                     await backup()
-                    if (str(shfl) == str(membr)):
-                        shfl = qlst[int(qlst.index(membr)) - 1]
                     qlst.remove(membr)
 
 
