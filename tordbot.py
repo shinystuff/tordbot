@@ -10,10 +10,13 @@ from random import shuffle, randrange, random, choice
 import pickle
 import copy
 from bottoken import tkn
-from pornlist import pornlst
+from tinydb import TinyDB, Query, where
+from tinydb.operations import delete
 
 bot = commands.Bot(command_prefix='!',
                    description='what kind of fucking hack made this?')
+db = TinyDB('tordbot.json')
+su = '162571470256472066'
 
 # Global variables are bad mkay fuck off
 qlst = []
@@ -21,15 +24,18 @@ shfl = None
 started = False
 backuplst = [] 
 shfllst = []
+staffroles = ['193469033708781569']
 # Boy you can probably do this list better somehow who cares tho
 authlst = ['187921806085062657', '131384366881439744',
 '110986858812432384', '193859387394097152', '146327419698020352',
-'140982805856387072', '139152162071511040',
-'203087815318306816',
-'98881691925360640', '195365659985575936', '338163511471374339',
+'140982805856387072', '139152162071511040', '71683569080082432',
+'203087815318306816', '156868352126615552', '111431887154610176',
+'98881691925360640', '195365659985575936', '233698225465327616',
 '146791841252114432', '120822373195710464', '162571470256472066',
 '83990060889804800', '63322560095322112', '98323644962328576',
-'105457012850044928', '202818898989547521']
+'105457012850044928', '198658162881069056', '137214092954828800',
+'293955985889034250', '100304054348939264', '98881691925360640',
+'101435120161927168']
 removedlst = [] # People who leave during a game will be placed behind shuffle
 
 @bot.event
@@ -128,8 +134,14 @@ async def move_queue():
 
 async def is_authed(usr, queue):
     if (queue == True):
+
+        staff = False
+        for r in usr.roles:
+            if (str(r) in staffroles):
+                staff = True
+
         if (usr not in qlst \
-            and str(usr.id) not in authlst):
+            and staff == False):
             return False
         else:
             return True
@@ -512,8 +524,14 @@ async def soldierpotg():
 
 @bot.command(pass_context=True, hidden=True)
 async def porn(ctx):
+    q = Query()
+    templist = db.search(q.link.exists())
+    pornlist = []
+    for x in templist:
+        pornlist.append(x['link'])
+        
     em = discord.Embed()
-    em.set_image(url=str(choice(pornlst)))
+    em.set_image(url=str(choice(pornlist)))
     await bot.send_message(ctx.message.channel, embed=em)
 
 @bot.command(hidden=True)
@@ -563,6 +581,20 @@ async def riddick():
 @bot.command(hidden=True)
 async def tier():
     await bot.say('The current tier of the queue is: **Garbage tier**')
+
+@bot.command(hidden=True)
+async def ramranch():
+    await bot.say('https://www.youtube.com/watch?v=bwr1JqkBj9s')
+
+@bot.command(pass_context=True, hidden=True)
+async def addporn(ctx, url : str):
+    if(str(ctx.message.author.id) != str(su)):
+        await bot.say("Your porn is not good enough.")
+        return
+
+    db.insert({'link': url}) 
+    await bot.say("Latex for the latex throne. Bondage for the bondage god.")
+
 
 # bot crash bot get up again. bot strong you weak
 while True:
